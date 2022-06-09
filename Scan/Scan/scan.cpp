@@ -11,7 +11,8 @@ Scan::Scan(QWidget *parent)
     ui->setupUi(this);
     manager = new QNetworkAccessManager(this);
     connect(manager,&QNetworkAccessManager::finished,this,&Scan::postBack);//通信完成后，自动执行getBack
-    post();
+    //post();
+    postTest();
 }
 
 Scan::~Scan()
@@ -45,9 +46,41 @@ QString Scan::calcMD5(QString source)
 
     return md5;
 }
+void Scan::postTest()
+{
+    qDebug() << "postTest";
 
+// Json数据
+    QJsonObject json;
+    json.insert("User", "admin");
+    json.insert("Password", "admin");
+
+    QJsonDocument document;
+    document.setObject(json);
+    QByteArray dataArray = document.toJson(QJsonDocument::Compact);
+
+//    // 表单数据
+//    QByteArray dataArray;
+//    dataArray.append("username=admin&");
+//    dataArray.append("password=admin");
+
+
+    // 构造请求
+    QNetworkRequest request;
+    /*httpbin.org 这个网站能测试 HTTP 请求和响应的各种信息，比如 cookie、ip、headers 和登录验证等，且支持 GET、POST 等多种方法，对 web 开发和测试很有帮助。*/
+    request.setUrl(QUrl("http://httpbin.org/post"));
+
+    //request.setUrl(QUrl("http://10.181.218.209:8080/login"));
+    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
+    //request.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded");
+
+    // 发送请求
+    manager->post(request, dataArray);
+}
 void Scan::post()
 {
+    qDebug() << "post";
+
     // Json数据
     QJsonObject json;
 
@@ -106,14 +139,17 @@ void Scan::post()
 
 void Scan::postBack(QNetworkReply* reply)
 {
-    qDebug()<<reply->readAll().data(); //输出所有响应内容
+    qDebug() << "postBack";
+
+    //qDebug()<<reply->readAll().data(); //输出所有响应内容
 
     // 获取响应信息
     QByteArray bytes = reply->readAll();
 
     QJsonParseError jsonError;
     QJsonDocument doucment = QJsonDocument::fromJson(bytes, &jsonError);
-    if (jsonError.error != QJsonParseError::NoError) {
+    if (jsonError.error != QJsonParseError::NoError)
+    {
         qDebug() << QStringLiteral("解析Json失败");
         return;
     }

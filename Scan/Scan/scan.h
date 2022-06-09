@@ -22,6 +22,7 @@ public:
     QString calcMD5(QString source);
 
     void post();
+    void postTest();
     void postBack(QNetworkReply* reply);
 
 private:
